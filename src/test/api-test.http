@@ -1,0 +1,22 @@
+GET http://localhost:8080/contrats
+Content-Type: application/json
+
+###
+POST http://localhost:8080/contrats
+Content-Type: application/json
+
+< contrat.json
+
+###
+GET http://localhost:8080/contrats/D3333
+Content-Type: application/json
+
+###
+PUT http://localhost:8080/contrats
+Content-Type: application/json
+
+< contrat-updated.json
+
+###
+DELETE http://localhost:8080/contrats/D3333
+Content-Type: application/json
