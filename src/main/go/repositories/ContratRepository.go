@@ -17,7 +17,7 @@ func NewContratRepository(db *pg.DB) *ContratRepository {
 }
 
 func (repo ContratRepository) FindById(id string) (models.Contrat, *models.ApiError) {
-	contrat  := models.Contrat{ NumeroContrat: id }
+	contrat := models.Contrat{NumeroContrat: id}
 	if err := repo.DB.Model(&contrat).WherePK().Select(); err != nil {
 		return contrat, models.FromError(err, http.StatusInternalServerError)
 	}
@@ -25,7 +25,7 @@ func (repo ContratRepository) FindById(id string) (models.Contrat, *models.ApiEr
 }
 
 func (repo ContratRepository) FindAll() ([]models.Contrat, *models.ApiError) {
-	var contrats  []models.Contrat
+	var contrats []models.Contrat
 	if err := repo.DB.Model(&contrats).Select(); err != nil {
 		return nil, models.FromError(err, http.StatusInternalServerError)
 	}
@@ -47,11 +47,9 @@ func (repo ContratRepository) Update(contrat *models.Contrat) *models.ApiError {
 }
 
 func (repo ContratRepository) Delete(id string) *models.ApiError {
-	contrat := models.Contrat{ NumeroContrat: id }
+	contrat := models.Contrat{NumeroContrat: id}
 	if _, err := repo.DB.Model(&contrat).WherePK().Delete(); err != nil {
 		return models.FromError(err, http.StatusInternalServerError)
 	}
 	return nil
 }
-
-

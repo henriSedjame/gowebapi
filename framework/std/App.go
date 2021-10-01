@@ -20,10 +20,10 @@ import (
 )
 
 type App struct {
-	Logger *log.Logger
-	server *http.Server
-	ctx    core.AppCtx
-	classpath string
+	Logger     *log.Logger
+	server     *http.Server
+	ctx        core.AppCtx
+	classpath  string
 	properties *AppProperties
 	datasource data.Datasource
 }
@@ -33,7 +33,7 @@ func New(logger *log.Logger, options ...AppOptions) (*App, error) {
 
 	app := &App{
 		Logger: logger,
-		ctx: context.Background(),
+		ctx:    context.Background(),
 	}
 
 	if err := app.setClasspath(); err != nil {
@@ -88,26 +88,21 @@ func (app *App) configureWebServer() {
 	router := mux.NewRouter()
 
 	for _, controller := range app.Context().Value(core.ControllersCtxKey).([]interface{}) {
+
 		ctrl := (controller).(web.RestController)
+
 		subRouter := router.PathPrefix(ctrl.Path()).Subrouter()
 
 		if ctrl.MiddleWare != nil {
 			subRouter.Use(ctrl.MiddleWare)
 		}
+
 		subRouter.Use(web.LoggingMiddleware(app.Logger))
 
-		/*if ctrl.DefaultModel() != nil && ctrl.ModelKey() != nil {
-			eh := ctrl.ErrorHandler()
-			if eh == nil {
-				eh = func(err error, writer http.ResponseWriter) error {
-					return jsonUtils.ToJson(core.AppError{ Message: err.Error()}, writer)
-				}
-			}
-			subRouter.Use(web.PostPutMethodHandler(ctrl.DefaultModel(), ctrl.ModelKey(), eh))
-		}*/
-
 		for _, endpoint := range ctrl.Endpoints() {
-			subRouter.HandleFunc(endpoint.Path(), endpoint.Handler()).Methods(endpoint.HttpMethod())
+			subRouter.
+				HandleFunc(endpoint.Path(), endpoint.Handler()).
+				Methods(endpoint.HttpMethod())
 		}
 	}
 
@@ -146,14 +141,19 @@ func (app *App) configureWebServer() {
 
 }
 
-func (app App) Run()  {
-
+func (app App) Run() {
 
 	// Start web server
 	app.configureWebServer()
 
 	// Launch the application
 	go func() {
+		nbControllers := len(app.Context().Value(core.ControllersCtxKey).([]interface{}))
+		nbEntities := len(app.Context().Value(core.EntitiesCtxKey).([]interface{}))
+
+		app.Logger.Printf("%v RestControllers detected\n", nbControllers)
+		app.Logger.Printf("%v Entities detected\n", nbEntities)
+
 		app.Logger.Fatal(app.server.ListenAndServe())
 	}()
 
@@ -203,11 +203,11 @@ func (app App) shutDownGracefully() {
 	signal.Notify(osSignalsChannel, os.Kill)
 
 	// Wait for new signal
-	_  = <- osSignalsChannel
+	_ = <-osSignalsChannel
 
-	app.Logger.Println(" ### Arrêt du serveur ....")
+	app.Logger.Println("Arrêt du serveur")
 
-	deadline, cancel := context.WithTimeout(app.Context(), 30 * time.Second)
+	deadline, cancel := context.WithTimeout(app.Context(), 30*time.Second)
 
 	defer cancel()
 

@@ -6,11 +6,9 @@ import (
 )
 
 type IndexController struct {
-
 }
 
 type HelloEndpoint struct {
-
 }
 
 func (h HelloEndpoint) Path() string {
@@ -19,7 +17,7 @@ func (h HelloEndpoint) Path() string {
 
 func (h HelloEndpoint) Handler() web.RequestHandler {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		_, _ = writer.Write([]byte("Hello"))
+		_, _ = writer.Write([]byte("Hello Maif vie"))
 	}
 }
 
@@ -54,4 +52,3 @@ func (i IndexController) MiddleWare(handler http.Handler) http.Handler {
 		handler.ServeHTTP(writer, request)
 	})
 }
-

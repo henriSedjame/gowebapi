@@ -1,12 +1,16 @@
 package web
 
 import (
+	"bytes"
 	"context"
+	"github.com/hsedjame/gowebapi/framework/core"
 	"github.com/hsedjame/gowebapi/framework/core/jsonUtils"
+	"github.com/hsedjame/gowebapi/framework/security"
 	"log"
 	"net/http"
+	"runtime"
+	"strconv"
 )
-
 
 func PostPutMethodHandler(defaultModel interface{}, modelKey interface{}, errorHandler ErrorHandler) func(handler http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -47,10 +51,50 @@ func PostPutMethodHandler(defaultModel interface{}, modelKey interface{}, errorH
 func LoggingMiddleware(logger *log.Logger) func(handler http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(wr http.ResponseWriter, rq *http.Request) {
-			logger.Println("---------------------------------")
+			id := GetGID()
+			logger.Printf(" Goroutine #%v ---------------------------------\n", id)
 			logger.Printf(" ----> [ %s %s ]", rq.Method, rq.URL.Path)
 			next.ServeHTTP(wr, rq)
 			logger.Println("_________________________________")
 		})
 	}
+}
+
+func SecurityMiddleware(config security.Configuration, ctx context.Context, updateCtx func(context.Context)) func(handler http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(wr http.ResponseWriter, rq *http.Request) {
+
+			securityContext := ctx.Value(core.SecurityCtxKey).(*security.Context)
+
+			if securityContext == nil {
+
+				securityContext = config.SecurityContextRepository.Load(rq)
+
+				if securityContext == nil {
+
+				} else {
+					ctx = context.WithValue(ctx, core.SecurityCtxKey, &securityContext)
+					updateCtx(ctx)
+				}
+			}
+
+			manager := *config.AuthenticationManager
+
+			authentication := manager.Authenticate(securityContext.Authentication)
+
+			if !authentication.IsAuthenticated() {
+
+			}
+
+		})
+	}
+}
+
+func GetGID() uint64 {
+	b := make([]byte, 64)
+	b = b[:runtime.Stack(b, false)]
+	b = bytes.TrimPrefix(b, []byte("goroutine "))
+	b = b[:bytes.IndexByte(b, ' ')]
+	n, _ := strconv.ParseUint(string(b), 10, 64)
+	return n
 }

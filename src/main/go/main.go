@@ -15,7 +15,7 @@ import (
 // An api to expose a Crud operations
 func main() {
 
-	logger := log.New(os.Stdout, "", log.LstdFlags)
+	logger := log.New(os.Stdout, "[CONTRAT-API] ", log.LstdFlags)
 
 	app, err := std.New(logger)
 
@@ -23,13 +23,12 @@ func main() {
 		return
 	}
 
-
 	app.
-		WithOptions(std.Entities([]interface{}{
-			&models.Contrat{},
-		})).
+		WithOptions(std.Entities([]interface{}{&models.Contrat{}})).
 		WithOptions(std.Rest([]interface{}{
+
 			&controllers.IndexController{},
+
 			&contrat.Controller{
 				Handler: &contrat.Handler{
 					Repository: &repositories.ContratRepository{

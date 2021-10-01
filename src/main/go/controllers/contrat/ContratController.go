@@ -3,12 +3,12 @@ package contrat
 import (
 	"context"
 	"github.com/hsedjame/gowebapi/framework/core/jsonUtils"
+	"github.com/hsedjame/gowebapi/framework/core/validations"
 	"github.com/hsedjame/gowebapi/framework/web"
 	"github.com/hsedjame/gowebapi/src/main/go/controllers/contrat/endpoints"
 	"github.com/hsedjame/gowebapi/src/main/go/models"
 	"net/http"
 )
-
 
 type Controller struct {
 	Handler *Handler
@@ -30,15 +30,6 @@ func (c Controller) ErrorHandler() web.ErrorHandler {
 	}
 }
 
-func (c Controller) DefaultModel() interface{} {
-	var contrat models.Contrat
-	return contrat
-}
-
-func (c Controller) ModelKey() interface{} {
-	return ContratKey{}
-}
-
 func (c Controller) Path() string {
 	return "/contrats"
 }
@@ -58,12 +49,11 @@ func (c Controller) MiddleWare(next http.Handler) http.Handler {
 				wr.WriteHeader(http.StatusBadRequest)
 				_ = c.ErrorHandler()(err, wr)
 				return
-			}
-			/*else if err := validations.IsValid(defaultModel); err != nil {
+			} else if err := validations.IsValid(contrat); err != nil {
 				wr.WriteHeader(http.StatusBadRequest)
-				_ = errorHandler(err, wr)
+				_ = c.ErrorHandler()(err, wr)
 				return
-			}*/
+			}
 
 			ctx := context.WithValue(rq.Context(), ContratKey{}, contrat)
 
@@ -77,4 +67,3 @@ func (c Controller) MiddleWare(next http.Handler) http.Handler {
 		next.ServeHTTP(wr, rq)
 	})
 }
-

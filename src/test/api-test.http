@@ -5,10 +5,10 @@ Content-Type: application/json
 POST http://localhost:8080/contrats
 Content-Type: application/json
 
-< contrat.json
+< dtos/contrat-4.json
 
 ###
-GET http://localhost:8080/contrats/D3333
+GET http://localhost:8080/contrats/N1001
 Content-Type: application/json
 
 ###
@@ -18,5 +18,5 @@ Content-Type: application/json
 < contrat-updated.json
 
 ###
-DELETE http://localhost:8080/contrats/D3333
+DELETE http://localhost:8080/contrats/N1000
 Content-Type: application/json
