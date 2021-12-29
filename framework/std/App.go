@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hsedjame/gowebapi/framework/core"
 	"github.com/hsedjame/gowebapi/framework/data"
+	"github.com/hsedjame/gowebapi/framework/security"
 	"github.com/hsedjame/gowebapi/framework/web"
 	"log"
 	"net/http"
@@ -26,6 +27,7 @@ type App struct {
 	classpath  string
 	properties *AppProperties
 	datasource data.Datasource
+	security   *security.Configuration
 }
 
 // New : CreateDatasource new app
@@ -99,10 +101,13 @@ func (app *App) configureWebServer() {
 
 		subRouter.Use(web.LoggingMiddleware(app.Logger))
 
+		subRouter.Use(web.SecurityMiddleware(app.security, app.ctx, ctrl.ErrorHandler()))
+
 		for _, endpoint := range ctrl.Endpoints() {
 			subRouter.
 				HandleFunc(endpoint.Path(), endpoint.Handler()).
 				Methods(endpoint.HttpMethod())
+
 		}
 	}
 

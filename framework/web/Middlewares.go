@@ -60,30 +60,21 @@ func LoggingMiddleware(logger *log.Logger) func(handler http.Handler) http.Handl
 	}
 }
 
-func SecurityMiddleware(config security.Configuration, ctx context.Context, updateCtx func(context.Context)) func(handler http.Handler) http.Handler {
+func SecurityMiddleware(config *security.Configuration, ctx context.Context, errorHandler ErrorHandler) func(handler http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(wr http.ResponseWriter, rq *http.Request) {
 
-			securityContext := ctx.Value(core.SecurityCtxKey).(*security.Context)
+			if securityContext, b := config.Apply(rq); b {
+				ctx = context.WithValue(ctx, core.SecurityCtxKey, &securityContext)
 
-			if securityContext == nil {
+				rq := rq.WithContext(ctx)
 
-				securityContext = config.SecurityContextRepository.Load(rq)
+				next.ServeHTTP(wr, rq)
 
-				if securityContext == nil {
-
-				} else {
-					ctx = context.WithValue(ctx, core.SecurityCtxKey, &securityContext)
-					updateCtx(ctx)
-				}
-			}
-
-			manager := *config.AuthenticationManager
-
-			authentication := manager.Authenticate(securityContext.Authentication)
-
-			if !authentication.IsAuthenticated() {
-
+			} else {
+				wr.WriteHeader(http.StatusUnauthorized)
+				_ = errorHandler(core.AppError{Message: " Unauthorized"}, wr)
+				return
 			}
 
 		})

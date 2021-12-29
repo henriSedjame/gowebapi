@@ -3,11 +3,13 @@ package main
 import (
 	"github.com/go-pg/pg/v10"
 	"github.com/hsedjame/gowebapi/framework/core"
+	"github.com/hsedjame/gowebapi/framework/security"
 	"github.com/hsedjame/gowebapi/framework/std"
 	"github.com/hsedjame/gowebapi/src/main/go/controllers"
 	"github.com/hsedjame/gowebapi/src/main/go/controllers/contrat"
 	"github.com/hsedjame/gowebapi/src/main/go/models"
 	"github.com/hsedjame/gowebapi/src/main/go/repositories"
+	"github.com/hsedjame/gowebapi/src/main/go/secure"
 	"log"
 	"os"
 )
@@ -16,7 +18,7 @@ import (
 func main() {
 
 	logger := log.New(os.Stdout, "[CONTRAT-API] ", log.LstdFlags)
-
+	authManager := &secure.AuthManager{}
 	app, err := std.New(logger)
 
 	if err != nil {
@@ -37,5 +39,14 @@ func main() {
 				},
 			},
 		})).
+		WithOptions(std.Security(
+			&security.Configuration{
+				AuthenticationManager: authManager,
+				SecurityContextRepository: &secure.SecuCtxRepo{
+					Manager: authManager,
+				},
+				Authorize: security.AuthorizeRequestSpec{},
+			},
+		)).
 		Run()
 }

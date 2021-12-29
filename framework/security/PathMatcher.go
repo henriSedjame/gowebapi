@@ -8,7 +8,7 @@ import (
 type AuthorizeRequestSpec struct {
 	PermitAll    []RequestPathMatcher
 	DenyAll      []RequestPathMatcher
-	HasAuthority map[RequestPathMatcher][]string
+	HasAuthority map[string]*RequestPathMatcher
 }
 
 type RequestPathMatcher struct {
@@ -31,7 +31,7 @@ func (matcher RequestPathMatcher) Matches(r *http.Request) bool {
 	return result
 }
 
-func (spec AuthorizeRequestSpec) Authorize(r *http.Request) bool {
+func (spec AuthorizeRequestSpec) Authorize(r *http.Request, auth Authentication) bool {
 
 	for _, matcher := range spec.PermitAll {
 		if matcher.Matches(r) {
@@ -42,6 +42,17 @@ func (spec AuthorizeRequestSpec) Authorize(r *http.Request) bool {
 	for _, matcher := range spec.DenyAll {
 		if matcher.Matches(r) {
 			return false
+		}
+	}
+
+	if auth.IsAuthenticated() {
+		for _, authority := range auth.GetAuthorities() {
+			if matcher := spec.HasAuthority[authority.Authority]; matcher != nil {
+				if matcher.Matches(r) {
+					return true
+				}
+			}
+
 		}
 	}
 

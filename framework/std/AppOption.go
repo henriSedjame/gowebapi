@@ -2,6 +2,7 @@ package std
 
 import (
 	"github.com/hsedjame/gowebapi/framework/core"
+	"github.com/hsedjame/gowebapi/framework/security"
 )
 
 // AppOptions : Application options
@@ -30,10 +31,15 @@ func Entities(datas []interface{}) AppOptions {
 
 		app.addToContext(core.EntitiesCtxKey, entities)
 
-		if err := app.datasource.LoadEntities(app.Context()); err != nil{
+		if err := app.datasource.LoadEntities(app.Context()); err != nil {
 			app.Logger.Fatal(err)
 		}
 	}
 }
 
-
+// Security : configure security
+func Security(configuration *security.Configuration) AppOptions {
+	return func(app *App) {
+		app.security = configuration
+	}
+}
